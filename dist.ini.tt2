@@ -1,0 +1,72 @@
+name             = [% project_name %]
+version          = [% version %]
+author           = [% author %]
+license          = None
+copyright_holder = Ventus
+copyright_year   = [% year %]
+abstract         = "[% description %]"
+
+[Run::BeforeBuild]
+:version = 0.046
+run = %x maint/build.pl
+run = %x maint/copy_bin.pl
+
+[ExecDir]
+dir              = bin
+
+[PkgVersion]
+
+[GatherDir]
+prune_directory  = bin
+prune_directory  = dependencies
+prune_directory  = node_modules
+prune_directory  = local
+prune_directory  = testdist
+prune_directory  = xt
+prune_directory  = fatlib
+
+[GatherDir / BinFiles]
+root   = ./bin
+prefix = bin
+
+[MakeMaker::Awesome]
+WriteMakefile_arg = PREREQ_PM => { [% dep_str %] }
+delimiter = |
+header = |
+header = |
+header = | if (-e 'cpanm') {
+header = |     for my $file ("bin/cpanm") {
+header = |         print STDERR "Generating $file from cpanm\n";
+header = |         open my $in,  "<cpanm" or die $!;
+header = |         open my $out, ">$file" or die $!;
+header = |         while (<$in>) {
+header = |             s|^#!/usr/bin/env perl|#!perl|; # so MakeMaker can fix it
+header = |             print $out $_;
+header = |         }
+header = |     }
+header = | }
+
+; [Run::AfterBuild]
+; run = %x -i -nlpe 's{(use ExtUtils::MakeMaker.*)}{"$1\n\n" . qx(cat maint/copy_bin.pl)}e' Makefile.PL
+; run = %x maint/bump_fatpack.pl %v ; bump the version of fatpacked executable on git
+
+; [Run::AfterRelease]
+; run = rm lib/App/cpanminus/fatscript.pm
+; run = %x maint/merge_master.pl
+
+
+[@Filter]
+-bundle          = @Basic
+-remove          = UploadToCPAN
+-remove          = MakeMaker
+-remove          = GatherDir
+-remove          = ConfirmRelease
+
+[Pinto::Add]
+author           = [% author %]
+root             = [% project_repo %]
+authenticate     = 0
+recurse          = 0
+
+
+

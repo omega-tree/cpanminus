@@ -1,0 +1,3 @@
+package Cpanminus;
+
+1;
