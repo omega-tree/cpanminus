@@ -8,7 +8,7 @@ blib
 !.gitkeep
 !/inc/
 bin/cpanm
-fatpacked/App/cpanminus/*.pm
+lib/App/cpanminus/*.pm
 /App-cpanminus-*
 /Menlo-*
 /.build
