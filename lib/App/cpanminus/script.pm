@@ -691,12 +691,15 @@ sub search_metacpan {
     }
 
     if ($dist_meta && $dist_meta->{download_url}) {
+        $dist_meta->{download_url} = to_arr_ref($dist_meta->{download_url});
+        $dist_meta->{status}       = to_arr_ref($dist_meta->{status});
+        $dist_meta->{date}         = to_arr_ref($dist_meta->{date});
         (my $distfile = $dist_meta->{download_url}[0]) =~ s!.+/authors/id/!!;
-        local $self->{mirrors} = $self->{mirrors};
+         # $self->{mirrors} = $self->{mirrors};
         if ($dist_meta->{status}[0] eq 'backpan') {
-            push(@{$self->{mirrors}}, 'http://backpan.org')       if(index_of(sub{return ($_ eq 'http://backpan.org')? 1 : undef;}, @{$self->{mirrors}}) >= 0);
+            unshift(@{$self->{mirrors}}, 'http://backpan.org')       if(scalar(grep($_ eq 'http://backpan.org', @{$self->{mirrors}})) > 0);
         } elsif (dtm_to_epoch($dist_meta->{date}[0]) > time()-24*60*60) {
-            push(@{$self->{mirrors}}, 'http://cpan.metacpan.org') if(index_of(sub{return ($_ eq 'http://cpan.metacpan.org')? 1 : undef;}, @{$self->{mirrors}}) >= 0);;
+            unshift(@{$self->{mirrors}}, 'http://cpan.metacpan.org') if(scalar(grep($_ eq 'http://cpan.metacpan.org', @{$self->{mirrors}})) > 0);
         }
 
         return $self->cpan_module($module, $distfile, $module_version);
@@ -705,20 +708,12 @@ sub search_metacpan {
     $self->diag_fail("Finding $module on metacpan failed.");
     return;
 }
-
-sub index_of{
+sub to_arr_ref{
     my(
-        $sub,
-        @array,
+        $scalar,
     ) = @_;
 
-    my $i = 0;
-    for my $elem (@array) {
-        my $result = $sub->($elem);
-        return $i if(defined($result));
-        $i++;
-    }
-    return -1;
+    return (ref ($scalar) eq 'ARRAY')? $scalar : [$scalar];
 }
 
 sub dtm_to_epoch{
@@ -736,7 +731,8 @@ sub dtm_to_epoch{
 
 sub search_database {
     my($self, $module, $version) = @_;
-
+    # use Data::Dumper;
+    # print Dumper('$module, $version:',\$module, $version);
     my $found;
 
     if ($self->{dev_release} or $self->{metacpan}) {
@@ -835,6 +831,9 @@ sub search_module {
 
     unless ($self->{mirror_only}) {
         my $found = $self->search_database($module, $version);
+        # use Data::Dumper;
+        # print Dumper('$found',$found);
+
         return $found if $found;
     }
 
@@ -1932,7 +1931,6 @@ sub resolve_name {
 
 sub cpan_module {
     my($self, $module, $dist_file, $version) = @_;
-
     my $dist = $self->cpan_dist($dist_file);
     $dist->{module} = $module;
     $dist->{module_version} = $version if $version && $version ne 'undef';

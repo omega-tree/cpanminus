@@ -6,6 +6,9 @@ copyright_holder = Ventus
 copyright_year   = [% year %]
 abstract         = "[% description %]"
 
+[MetaNoIndex]
+file = lib/App/cpanminus/fatscript.pm
+
 [Run::BeforeBuild]
 :version = 0.046
 run = %x maint/build.pl
