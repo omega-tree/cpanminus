@@ -11,6 +11,7 @@ file = lib/App/cpanminus/fatscript.pm
 
 [Run::BeforeBuild]
 :version = 0.046
+run = rm -f lib/App/cpanminus/fatscript.pm
 run = %x maint/build.pl
 run = %x maint/copy_bin.pl
 
@@ -54,7 +55,6 @@ header = | }
 ; run = %x maint/bump_fatpack.pl %v ; bump the version of fatpacked executable on git
 
 ; [Run::AfterRelease]
-; run = rm lib/App/cpanminus/fatscript.pm
 ; run = %x maint/merge_master.pl
 
 
